@@ -1,0 +1,21 @@
+# Rebuilt inside the image
+node_modules
+.output
+.nuxt
+.nitro
+.data
+.cache
+dist
+
+# Not needed to build or run
+.git
+.claude
+.playwright-mcp
+.DS_Store
+test
+coverage
+*.log
+Dockerfile
+.dockerignore
+
+# Note: sections/*.md and the root *.md files are not ignored on purpose; the sections are the book

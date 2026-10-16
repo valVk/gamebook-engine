@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- A red sun setting behind an ink dune, on the paper of the page -->
+  <rect width="64" height="64" fill="#efe8d6"/>
+  <circle cx="33" cy="30" r="17" fill="#a3311f"/>
+  <path d="M0 46 C 12 36, 24 36, 35 43 C 44 48.5, 54 47, 64 40 V64 H0 Z" fill="#221c16"/>
+</svg>

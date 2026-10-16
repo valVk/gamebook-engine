@@ -1,0 +1,57 @@
+{
+  "name": "gamebook-engine",
+  "private": true,
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "description": "Non-commercial engine for reading gamebooks: dice, character sheet, fights and every rule of the text tracked",
+  "author": "valVK",
+  "type": "module",
+  "engines": {
+    "node": "^22.22.3 || ^24.15.0"
+  },
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "book:check": "vite-node --config vitest.config.ts scripts/book-check.ts --",
+    "book:fingerprint": "vite-node --config vitest.config.ts scripts/book-fingerprint.ts --",
+    "book:new": "node scripts/book-new.mjs",
+    "import:povelitel": "vite-node --config vitest.config.ts importers/povelitel/import.ts --",
+    "import:shelton": "vite-node --config vitest.config.ts importers/shelton/import.ts --"
+  },
+  "dependencies": {
+    "@dice-roller/rpg-dice-roller": "^5.5.1",
+    "@nuxt/ui": "^4.11.3",
+    "@pinia/nuxt": "^1.0.3",
+    "jiti": "^2.7.0",
+    "marked": "^18.1.1",
+    "nuxt": "^4.6.1",
+    "pinia": "^4.1.0",
+    "tailwindcss": "^4.3.3",
+    "vue": "^3.5.44",
+    "vue-router": "^5.4.0"
+  },
+  "devDependencies": {
+    "@iconify-json/lucide": "^1.2.144",
+    "@nuxt/eslint": "^1.17.0",
+    "@types/node": "^26.6.5",
+    "eslint": "^10.12.0",
+    "happy-dom": "^21.0.1",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.4",
+    "vue-tsc": "^3.3.13"
+  },
+  "overrides": {
+    "mathjs": "^15.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/valVk/gamebook-engine.git"
+  }
+}

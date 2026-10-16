@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 372" width="300" height="372">
+  <!-- Demo cover: glass valley at dusk, in the engine's paper/ink/cinnabar palette -->
+  <rect width="300" height="372" fill="#efe8d6"/>
+  <rect x="10" y="10" width="280" height="352" fill="none" stroke="#221c16" stroke-width="2"/>
+  <rect x="16" y="16" width="268" height="340" fill="none" stroke="#221c16" stroke-opacity="0.55" stroke-width="1"/>
+  <circle cx="150" cy="190" r="58" fill="#a3311f"/>
+  <path d="M16 236 C 70 200, 110 204, 160 226 C 200 244, 240 238, 284 214 V356 H16 Z" fill="#221c16"/>
+  <path d="M16 286 C 80 262, 140 268, 200 288 C 236 300, 262 298, 284 290" fill="none" stroke="#efe8d6" stroke-width="2.5" stroke-linecap="round"/>
+  <text x="150" y="70" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="25" font-weight="700" fill="#221c16">ТРОПА</text>
+  <text x="150" y="100" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="19" fill="#221c16">СТЕКЛЯННОЙ ДОЛИНЫ</text>
+  <text x="150" y="128" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="13" font-style="italic" fill="#4a4a52">книга-игра для примера</text>
+</svg>

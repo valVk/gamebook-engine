@@ -1,0 +1,752 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+/*
+ * Design: the page is the printed 1993 book; everything the reader writes (stats, rolls,
+ * notes) is graphite pencil in a hand font, the way the Листок путешественника was filled in.
+ * Ink for print, graphite for the reader, one cinnabar accent for references and actions.
+ */
+@theme {
+  /* Loaded by @nuxt/fonts with Cyrillic subsets (nuxt.config.ts) */
+  --font-sans: 'EB Garamond', Georgia, serif;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-hand: 'Neucha', 'Comic Sans MS', cursive;
+  --font-ornament: 'Ruslan Display', 'Cormorant Garamond', serif;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@theme static {
+  --color-paper: #efe8d6;
+  --color-paper-shade: #e4dbc4;
+  --color-ink: #221c16;
+  --color-graphite: #4a4a52;
+
+  /* Cinnabar ink; shade 600 is the accent */
+  --color-cinnabar-50: #fbf1ee;
+  --color-cinnabar-100: #f6ddd6;
+  --color-cinnabar-200: #ecbbad;
+  --color-cinnabar-300: #df9180;
+  --color-cinnabar-400: #cd6450;
+  --color-cinnabar-500: #b84530;
+  --color-cinnabar-600: #a3311f;
+  --color-cinnabar-700: #87281a;
+  --color-cinnabar-800: #6c2116;
+  --color-cinnabar-900: #561c13;
+  --color-cinnabar-950: #300d08;
+}
+
+/* Nuxt UI semantic tokens mapped onto paper, ink and graphite */
+:root {
+  --ui-primary: var(--ui-color-primary-600);
+  --ui-success: var(--ui-color-success-800);
+  --ui-error: var(--ui-color-error-600);
+  --ui-warning: var(--ui-color-warning-800);
+  --ui-info: var(--ui-color-info-800);
+
+  --ui-text: var(--color-ink);
+  --ui-text-highlighted: var(--color-ink);
+  --ui-text-toned: #3d362f;
+  --ui-text-muted: #5e564d;
+  --ui-text-dimmed: #7d7468;
+
+  --ui-bg: var(--color-paper);
+  --ui-bg-muted: #e9e1cd;
+  --ui-bg-elevated: #f4eee0;
+  --ui-bg-accented: var(--color-paper-shade);
+
+  --ui-border: rgb(34 28 22 / 0.22);
+  --ui-border-muted: rgb(34 28 22 / 0.12);
+  --ui-border-accented: rgb(34 28 22 / 0.45);
+
+  --ui-radius: 0.375rem;
+
+}
+
+/* Mobile baseline */
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+button, a, [role="button"] {
+  touch-action: manipulation;
+}
+
+button, [role="button"] {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+input, textarea, select {
+  font-size: max(16px, 1em);
+}
+
+body {
+  @apply bg-default text-default font-sans antialiased;
+  min-height: 100dvh;
+  line-height: 1.6;
+  font-feature-settings: "onum" 1, "kern" 1;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-display font-medium text-highlighted;
+}
+
+/* Dialogs and cards: a sheet of the same paper, edged in ink */
+@utility parchment-surface {
+  @apply bg-elevated text-default;
+  box-shadow: 0 1px 0 rgb(34 28 22 / 0.08), 0 12px 32px -12px rgb(34 28 22 / 0.25);
+}
+
+/* Anything the reader writes: values on the Листок, roll results, notes */
+@utility pencil {
+  font-family: var(--font-hand);
+  color: var(--color-graphite);
+  font-feature-settings: normal;
+}
+
+/* Листок путешественника pieces, shared by the sheet and the character creation dialog */
+
+/* A value circled in pencil, as on the printed form */
+.ring-mark {
+  @apply pencil grid place-items-center size-12 text-2xl;
+  border: 1.5px solid var(--color-graphite);
+  border-radius: 52% 46% 50% 48% / 48% 52% 46% 54%;
+}
+
+/* The printed captions of the form */
+.cell-label {
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+}
+
+.luck-square {
+  @apply grid place-items-center size-8 text-sm font-semibold;
+  border: 1.5px solid var(--color-ink);
+  font-variant-numeric: lining-nums;
+}
+
+/* Crossed out in pencil */
+.luck-square.crossed {
+  color: rgb(34 28 22 / 0.45);
+  background:
+    linear-gradient(to top right, transparent calc(50% - 1px), var(--color-graphite) calc(50% - 1px), var(--color-graphite) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+    linear-gradient(to bottom right, transparent calc(50% - 1px), var(--color-graphite) calc(50% - 1px), var(--color-graphite) calc(50% + 0.5px), transparent calc(50% + 0.5px));
+}
+
+/*
+ * Actions are handwritten words. At rest only the lettering (and a barely-visible tilt of its own);
+ * on hover the pencil draws the underline left to right while the word lifts, grows a little and
+ * tilts its own way. Each action gets its own angles from its label (plugins/handwriting.client.ts),
+ * so it always leans the same way. Without hover (touch) the underline is always shown.
+ * - primary: red lettering, double red underline
+ * - ordinary: ink lettering, one graphite underline
+ * - quiet (secondary): muted lettering, a light underline
+ */
+@utility crayon {
+  font-family: var(--font-hand);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  border-radius: 0;
+}
+
+.pencil-action {
+  --pencil-line: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M5 5 C 50 2, 110 8, 158 4 C 176 3, 189 5, 196 6' fill='none' stroke='%234a4a52' stroke-width='1.6' stroke-opacity='1' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  background-color: transparent;
+  background-image: var(--pencil-line);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 0.6em;
+  padding-bottom: 0.55em;
+  rotate: var(--tilt-rest, -0.5deg);
+  transition:
+    background-size 220ms var(--ease-out),
+    rotate 200ms var(--ease-out),
+    translate 200ms var(--ease-out),
+    scale 160ms var(--ease-out),
+    color 150ms ease,
+    opacity 150ms ease;
+}
+
+.pencil-action--primary {
+  --pencil-line: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M5 5 C 50 2, 110 8, 158 4 C 176 3, 189 5, 196 6' fill='none' stroke='%23a3311f' stroke-width='2.2' stroke-opacity='1' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M9 9 C 60 7, 120 11, 170 8 C 182 7, 190 8, 194 9' fill='none' stroke='%23a3311f' stroke-width='1.5' stroke-opacity='0.75' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+}
+
+/* Destructive but secondary (end the journey): red lettering, one thin red line */
+.pencil-action--danger {
+  --pencil-line: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M5 5 C 50 2, 110 8, 158 4 C 176 3, 189 5, 196 6' fill='none' stroke='%23a3311f' stroke-width='1.4' stroke-opacity='0.85' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+}
+
+.pencil-action--quiet {
+  --pencil-line: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M5 5 C 50 2, 110 8, 158 4 C 176 3, 189 5, 196 6' fill='none' stroke='%234a4a52' stroke-width='1.2' stroke-opacity='0.6' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  color: var(--ui-text-toned);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pencil-action:not(:disabled):hover {
+    background-size: 100% 0.6em;
+    rotate: var(--tilt-hover, -1.5deg);
+    translate: 0 -1px;
+    scale: 1.04;
+  }
+
+  .pencil-action--quiet:not(:disabled):hover {
+    color: var(--color-ink);
+  }
+}
+
+/* Touch: no hover to reveal it, so the underline is always there */
+@media (hover: none) {
+  .pencil-action {
+    background-size: 100% 0.6em;
+  }
+}
+
+.pencil-action:not(:disabled):active {
+  scale: 0.97;
+}
+
+.pencil-action:disabled {
+  opacity: 0.45;
+}
+
+/* Keyboard focus: the underline is drawn and a dashed pencil frame marks the spot */
+.pencil-action:focus-visible {
+  background-size: 100% 0.6em;
+  outline: 2px dashed var(--ui-primary);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pencil-action,
+  .pencil-action:not(:disabled):hover {
+    rotate: 0deg;
+    translate: none;
+    scale: none;
+    transition: color 150ms ease, opacity 150ms ease;
+  }
+}
+
+/* An underline needs a word: icon-only buttons (dialog close) stay bare and straight */
+.pencil-action:has(> [class*="iconify"]):not(:has(> .truncate)) {
+  background-image: none;
+  rotate: 0deg;
+}
+
+/*
+ * A note scribbled on the sheet in red pencil: temporary modifiers such as "−3 в бою".
+ * Hand-drawn outline (uneven radius, slight tilt) so it reads as written, not printed.
+ */
+.pencil-tag {
+  display: inline-block;
+  padding: 0.05em 0.55em 0.1em;
+  font-family: var(--font-hand);
+  font-size: 0.95rem;
+  line-height: 1.25;
+  white-space: nowrap;
+  color: var(--ui-primary);
+  border: 1.5px solid currentColor;
+  border-radius: 46% 54% 42% 58% / 58% 44% 56% 42%;
+  transform: rotate(-4deg);
+}
+
+/* Book text rendered from markdown by SectionViewer */
+.book-content {
+  /* 19px on phones (below), 20px on small tablets, 21px from 768px: ~63 characters per line in the 38rem column */
+  font-size: 1.25rem;
+  line-height: 1.6;
+  text-align: justify;
+  hyphens: auto;
+  hanging-punctuation: first;
+}
+
+@media (min-width: 768px) {
+  .book-content {
+    font-size: 1.3125rem;
+  }
+}
+
+.book-content p {
+  margin: 0;
+  text-indent: 1.5em;
+}
+
+.book-content p + p {
+  margin-top: 0.35em;
+}
+
+.book-content h1, .book-content h2, .book-content h3, .book-content h4 {
+  text-align: center;
+  margin: 1.5em 0 0.75em;
+  font-size: 1.5rem;
+  text-indent: 0;
+}
+
+/* Chapter headings of the preface (ПРАВИЛА ИГРЫ, ПРЕДИСЛОВИЕ) */
+.book-content h1 {
+  margin: 2.5em 0 1em;
+  font-family: var(--font-ornament);
+  font-size: 1.6rem;
+  font-weight: 400;
+  text-transform: lowercase;
+  scroll-margin-top: 1.5rem;
+}
+
+.book-content h1::first-letter {
+  text-transform: uppercase;
+}
+
+.book-content h5 {
+  scroll-margin-top: 1.5rem;
+}
+
+/* The stats table of the rules */
+.book-content table {
+  margin: 1.25em auto 1.5em;
+  border-collapse: collapse;
+  font-variant-numeric: lining-nums tabular-nums;
+  text-align: center;
+}
+
+.book-content :is(th, td) {
+  padding: 0.2em 0.9em;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.book-content th {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 700;
+  border-bottom: 1.5px solid var(--color-ink);
+}
+
+/* Enemy names and preface headings are set in caps in the book: show them as small caps */
+.book-content h5 {
+  text-align: center;
+  margin: 1.75em 0 0.4em;
+  font-size: 1.15rem;
+  font-weight: 600;
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.08em;
+}
+
+/* Enemy stat block («> ##### Ловкость 9 Сила 10»): a small inked plate, not a quotation */
+.book-content blockquote {
+  width: fit-content;
+  margin: 0 auto 1.4em;
+  padding: 0.2em 1.1em;
+  border-block: 1.5px solid var(--color-ink);
+  text-align: center;
+}
+
+.book-content blockquote :is(h5, p) {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  font-variant-caps: normal;
+  letter-spacing: 0;
+  text-indent: 0;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.book-content img {
+  margin: 1.5em auto;
+  max-height: 32rem;
+  width: auto;
+}
+
+/*
+ * Section references are written in the margin by hand, like every action: red pencil numbers,
+ * each with its own slight tilt (plugins/handwriting.client.ts). On hover the pencil draws the
+ * line under the number while it lifts and leans; on touch the line is always there.
+ */
+.book-content a {
+  --pencil-line: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 12' preserveAspectRatio='none'%3E%3Cpath d='M4 6 C 26 3, 58 9, 82 5 C 90 4, 95 6, 97 6' fill='none' stroke='%23a3311f' stroke-width='1.8' stroke-opacity='1' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  display: inline-block;
+  padding: 0 0.02em 0.22em;
+  font-family: var(--font-hand);
+  font-size: 1.18em;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--ui-primary);
+  text-decoration: none;
+  text-indent: 0;
+  background-image: var(--pencil-line);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 0.45em;
+  rotate: var(--tilt-rest, -1deg);
+  transition:
+    background-size 200ms var(--ease-out),
+    rotate 180ms var(--ease-out),
+    translate 180ms var(--ease-out),
+    scale 150ms var(--ease-out),
+    color 150ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .book-content a:not(.blocked-link, .effect-locked, .luck-dimmed-link, .effect-dimmed, .link-unaffordable):hover {
+    background-size: 100% 0.45em;
+    rotate: var(--tilt-hover, -3deg);
+    translate: 0 -1px;
+    scale: 1.08;
+  }
+}
+
+@media (hover: none) {
+  .book-content a {
+    background-size: 100% 0.45em;
+  }
+}
+
+.book-content a:active {
+  scale: 0.95;
+}
+
+.book-content a:focus-visible {
+  background-size: 100% 0.45em;
+  outline: 2px dashed var(--ui-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .book-content a,
+  .book-content a:hover {
+    rotate: 0deg;
+    translate: none;
+    scale: none;
+  }
+}
+
+/* Not available yet (waiting for a roll or a fight): graphite pencil, a dotted pencil line */
+.book-content a:is(.blocked-link, .effect-locked) {
+  --pencil-line: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 12' preserveAspectRatio='none'%3E%3Cpath d='M4 6 C 26 3, 58 9, 82 5 C 90 4, 95 6, 97 6' fill='none' stroke='%234a4a52' stroke-width='1.4' stroke-opacity='0.7' stroke-linecap='round' stroke-dasharray='2 4' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  color: var(--color-graphite);
+  background-size: 100% 0.45em;
+  cursor: not-allowed;
+}
+
+.book-content a:is(.blocked-link) {
+  pointer-events: none;
+}
+
+/* Not the way: the other branch of a test, a condition not met */
+.book-content a:is(.luck-dimmed-link, .effect-dimmed, .link-unaffordable) {
+  color: var(--color-graphite);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.book-content a.luck-dimmed-link {
+  pointer-events: none;
+}
+
+/* The branch chosen by a roll: the line is already drawn */
+.book-content a:is(.luck-success-link, .effect-success) {
+  --pencil-line: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 12' preserveAspectRatio='none'%3E%3Cpath d='M4 6 C 26 3, 58 9, 82 5 C 90 4, 95 6, 97 6' fill='none' stroke='%23166534' stroke-width='2' stroke-opacity='1' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  color: var(--ui-success);
+  background-size: 100% 0.45em;
+}
+
+.book-content a:is(.luck-failure-link, .effect-failure) {
+  background-size: 100% 0.45em;
+}
+
+/* Luck check UI injected into the text by useLuckCheck */
+/* The luck roll button is injected into the text by useLuckCheck: a primary pencil action, centered */
+.book-content .luck-roll-btn {
+  @apply crayon;
+  display: flex;
+  width: fit-content;
+  margin: 1.1rem auto 0.25rem;
+  padding: 0.2rem 0.75rem 0.6rem;
+  color: var(--ui-primary);
+  font-size: 1.6rem;
+  text-indent: 0;
+  cursor: pointer;
+}
+
+.book-content .luck-roll-btn:active {
+  scale: 0.97;
+}
+
+/*
+ * Outcome cards: whatever a reader gains or loses (luck, fights, wounds, items, endings) is dealt
+ * onto the page as a card, like the skill cards a hero receives in Heroes III, in this book's
+ * materials: a paper card with a real shadow and a slight tilt, a double ink frame, a medallion
+ * breaking the top edge (the thrown die or an emblem), then the title and a few lines.
+ * Tones: reward (green ink), penalty (cinnabar), neutral (ink).
+ * Fresh outcomes play once: the card is dealt, the medallion lands, pencil marks are drawn, the
+ * words appear. Reloaded or reduced-motion: shown as it ends.
+ */
+.outcome-card {
+  --card-ink: var(--color-ink);
+  --card-paper: #f2ecdc;
+  position: relative;
+  width: min(100%, 22rem);
+  margin: 3.25rem auto 0.75rem;
+  padding: 3.6rem 1.75rem 1.6rem;
+  text-align: center;
+  text-indent: 0;
+  hyphens: manual;
+  background-color: var(--card-paper);
+  rotate: -1deg;
+  box-shadow:
+    0 0 0 1px rgb(34 28 22 / 0.06),
+    0 1px 2px rgb(34 28 22 / 0.16),
+    0 6px 14px -4px rgb(34 28 22 / 0.18),
+    0 22px 36px -20px rgb(34 28 22 / 0.5);
+}
+
+.outcome-card:nth-of-type(even) {
+  rotate: 0.8deg;
+}
+
+.outcome-card.is-reward {
+  --card-ink: var(--ui-success);
+}
+
+.outcome-card.is-penalty {
+  --card-ink: var(--ui-primary);
+}
+
+/* Double ink frame inside the card */
+.outcome-card::before {
+  content: '';
+  position: absolute;
+  inset: 0.55rem;
+  border: 1.5px solid var(--color-ink);
+  outline: 1px solid rgb(34 28 22 / 0.55);
+  outline-offset: -5px;
+  pointer-events: none;
+}
+
+/* Medallion breaking the frame at the top: the thrown die or an emblem */
+.outcome-medallion {
+  position: absolute;
+  top: -2.1rem;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 4.2rem;
+  height: 4.2rem;
+  margin-left: -2.1rem;
+  padding: 0.55rem;
+  color: var(--card-ink);
+  background: var(--card-paper);
+  border: 1.5px solid var(--color-ink);
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px var(--card-paper), 0 0 0 5.5px rgb(34 28 22 / 0.55), 0 6px 10px -4px rgb(34 28 22 / 0.35);
+  rotate: -8deg;
+}
+
+.outcome-medallion .ink-die {
+  width: 100%;
+  height: 100%;
+}
+
+.outcome-emblem {
+  width: 2.1rem;
+  height: 2.1rem;
+}
+
+.ink-die {
+  overflow: visible;
+}
+
+.ink-die-face {
+  fill: #f7f2e6;
+  stroke: var(--color-ink);
+  stroke-width: 4;
+  stroke-linejoin: round;
+}
+
+.ink-die-pip {
+  fill: var(--color-ink);
+}
+
+/* Dice shown inside the card (two or three dice decided it) */
+.outcome-dice {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-bottom: 0.25rem;
+}
+
+.outcome-dice .ink-die {
+  width: 2.3rem;
+  height: 2.3rem;
+}
+
+.outcome-dice .ink-die:nth-child(odd) {
+  rotate: -7deg;
+}
+
+.outcome-dice .ink-die:nth-child(even) {
+  rotate: 9deg;
+}
+
+.outcome-card .luck-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-bottom: 0.25rem;
+}
+
+.outcome-card .luck-square {
+  position: relative;
+  font-family: var(--font-sans);
+  overflow: visible;
+}
+
+.outcome-card .luck-square.is-rolled {
+  color: var(--color-ink);
+  border-color: var(--card-ink);
+  box-shadow: 0 0 0 1px var(--card-ink);
+}
+
+.pencil-mark {
+  position: absolute;
+  inset: -0.25rem;
+  width: calc(100% + 0.5rem);
+  height: calc(100% + 0.5rem);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.pencil-mark path {
+  fill: none;
+  stroke: var(--color-graphite);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+.pencil-mark--circle {
+  inset: -0.45rem;
+  width: calc(100% + 0.9rem);
+  height: calc(100% + 0.9rem);
+}
+
+.pencil-mark--circle path {
+  stroke: var(--card-ink);
+  stroke-width: 2;
+}
+
+.outcome-card .outcome-title {
+  margin: 1.1rem 0 0;
+  font-family: var(--font-ornament);
+  font-size: 1.45rem;
+  line-height: 1.15;
+  color: var(--card-ink);
+  text-indent: 0;
+  text-wrap: balance;
+}
+
+.outcome-card .outcome-line {
+  margin: 0.45rem 0 0;
+  font-family: var(--font-hand);
+  font-size: 1.2rem;
+  line-height: 1.35;
+  color: var(--color-graphite);
+  text-indent: 0;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.outcome-card .outcome-line + .outcome-line {
+  margin-top: 0.15rem;
+}
+
+/* Actions inside a card (restart after an ending) */
+.outcome-card > .outcome-action {
+  margin-top: 1rem;
+}
+
+/* The way on inside the card: slightly larger, not tilted */
+.outcome-card .outcome-line a {
+  font-size: 1.2em;
+  rotate: 0deg;
+}
+
+/* One orchestrated reveal, only for a fresh outcome and only when motion is welcome */
+@media (prefers-reduced-motion: no-preference) {
+  .outcome-card.is-fresh {
+    animation: card-dealt 520ms var(--ease-out) both;
+  }
+
+  .outcome-card.is-fresh .outcome-medallion {
+    animation: medallion-lands 560ms var(--ease-out) 300ms both;
+  }
+
+  .outcome-card.is-fresh :is(.outcome-dice, .luck-row) {
+    animation: words-appear 300ms var(--ease-out) 650ms both;
+  }
+
+  .outcome-card.is-fresh .pencil-mark path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: pencil-draws 320ms ease-out 820ms forwards;
+  }
+
+  .outcome-card.is-fresh .pencil-mark path + path {
+    animation-delay: 980ms;
+  }
+
+  .outcome-card.is-fresh :is(.outcome-title, .outcome-line, .outcome-action) {
+    animation: words-appear 360ms var(--ease-out) 1100ms both;
+  }
+
+  .outcome-card.is-fresh :is(.outcome-line, .outcome-action) {
+    animation-delay: 1250ms;
+  }
+}
+
+@keyframes card-dealt {
+  from { opacity: 0; translate: 0 18px; rotate: -5deg; scale: 0.96; }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+@keyframes medallion-lands {
+  0% { opacity: 0; rotate: -200deg; scale: 0.6; }
+  70% { opacity: 1; rotate: 6deg; scale: 1.06; }
+  100% { opacity: 1; rotate: -8deg; scale: 1; }
+}
+
+@keyframes pencil-draws {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes words-appear {
+  from { opacity: 0; translate: 0 4px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+/* Values changed by the last action flash once in pencil red, then settle back */
+@keyframes value-changed {
+  from { color: var(--ui-primary); }
+  to { color: inherit; }
+}
+
+.value-changed {
+  animation: value-changed 900ms var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .book-content {
+    font-size: 1.1875rem;
+    line-height: 1.58;
+  }
+}

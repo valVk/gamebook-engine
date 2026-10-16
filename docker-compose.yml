@@ -1,0 +1,55 @@
+# Production deployment of Gamebook Engine.
+#   docker compose --profile production up -d --build
+#   docker compose --profile production logs -f
+#   docker compose --profile production down
+#
+# Settings come from .env (see .env.example): GAMEBOOK_BOOKS (the folder of book packs),
+# GAMEBOOK_BIND / GAMEBOOK_PORT (where the port is published; localhost by default, put a
+# reverse proxy in front of it).
+
+services:
+  app-prod:
+    container_name: gamebook-engine
+    image: gamebook-engine:latest
+    build:
+      context: .
+      target: runtime
+      dockerfile: Dockerfile
+    ports:
+      - "${GAMEBOOK_BIND:-127.0.0.1}:${GAMEBOOK_PORT:-3000}:3000"
+    # The book packs, read at runtime: a restart picks up added or changed books
+    volumes:
+      - ${GAMEBOOK_BOOKS:-./examples/books}:/books:ro
+    environment:
+      - NODE_ENV=production
+      - BOOKS_DIR=/books
+      # The Nitro server reads HOST/PORT (NUXT_HOST/NUXT_PORT are ignored by the built server)
+      - HOST=0.0.0.0
+      - PORT=3000
+    env_file:
+      - path: .env
+        required: false
+    restart: unless-stopped
+    # The app never writes to disk; the image healthcheck (/healthz) is kept
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    networks:
+      - gamebook-network
+    profiles:
+      - production
+
+networks:
+  gamebook-network:
+    driver: bridge
